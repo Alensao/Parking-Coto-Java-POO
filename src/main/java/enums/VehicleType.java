@@ -1,13 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package enums;
 
 /**
- *
- * @author alenc
+ * Descriptive type of a vehicle.
+ * <p>
+ * It is used only to display information. Fees and space compatibility
+ * are resolved through polymorphism in the Vehicle subclasses, never by
+ * asking for this value.
  */
-public class VehicleType {
-    
+public enum VehicleType {
+    MOTORCYCLE,
+    CAR,
+    CARGO
 }
