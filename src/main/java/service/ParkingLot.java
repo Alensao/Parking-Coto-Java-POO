@@ -9,6 +9,7 @@ import exception.ParkingException;
 import exception.SpaceNotAvailableException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -188,6 +189,32 @@ public class ParkingLot {
         return spaces.values().stream()
                 .filter(space -> space.getStatus() == status)
                 .count();
+    }
+
+    /**
+     * Total number of spaces of each type.
+     */
+    public Map<SpaceType, Long> countSpacesByType() {
+        Map<SpaceType, Long> result = new EnumMap<>(SpaceType.class);
+        for (SpaceType type : SpaceType.values()) {
+            result.put(type, 0L);
+        }
+        spaces.values().forEach(space -> result.merge(space.getType(), 1L, Long::sum));
+        return result;
+    }
+
+    /**
+     * Number of occupied spaces of each type.
+     */
+    public Map<SpaceType, Long> countOccupiedSpacesByType() {
+        Map<SpaceType, Long> result = new EnumMap<>(SpaceType.class);
+        for (SpaceType type : SpaceType.values()) {
+            result.put(type, 0L);
+        }
+        spaces.values().stream()
+                .filter(space -> space.getStatus() == SpaceStatus.OCCUPIED)
+                .forEach(space -> result.merge(space.getType(), 1L, Long::sum));
+        return result;
     }
 
     /**

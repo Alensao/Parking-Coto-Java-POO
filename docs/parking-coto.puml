@@ -125,6 +125,8 @@ package model {
         + getId(): String
         + getType(): SpaceType
         + getStatus(): SpaceStatus
+        + equals(other: Object): boolean
+        + hashCode(): int
     }
 
     class ParkingTicket {
@@ -141,6 +143,10 @@ package model {
         + getStayDuration(): Duration
         + close(exitTime: LocalDateTime): void
         + pay(paymentId: int, type: PaymentType, paymentTime: LocalDateTime): Payment
+        + getTicketNumber(): int
+        + getVehicle(): Vehicle
+        + getSpace(): ParkingSpace
+        + getEntryTime(): LocalDateTime
         + getExitTime(): Optional<LocalDateTime>
         + getStatus(): TicketStatus
         + getFinalAmount(): long
@@ -182,12 +188,18 @@ package service {
         + registerEntry(licensePlate: String, spaceId: String, entryTime: LocalDateTime): ParkingTicket
         + registerExit(licensePlate: String, exitTime: LocalDateTime): ParkingTicket
         + registerPayment(ticketNumber: int, type: PaymentType, paymentTime: LocalDateTime): Payment
+        + getName(): String
+        + getVehicles(): List<Vehicle>
+        + getSpaces(): List<ParkingSpace>
         + getAvailableSpaces(): List<ParkingSpace>
+        + getTickets(): List<ParkingTicket>
         + getActiveTickets(): List<ParkingTicket>
         + getVehiclesInside(): List<Vehicle>
         + getPayments(): List<Payment>
         + getTotalRevenue(): long
         + countSpacesByStatus(status: SpaceStatus): long
+        + countSpacesByType(): Map<SpaceType, Long>
+        + countOccupiedSpacesByType(): Map<SpaceType, Long>
         + getOccupancyPercentage(): double
         - findVehicle(licensePlate: String): Vehicle
         - findSpace(spaceId: String): ParkingSpace
@@ -232,6 +244,20 @@ package com.mycompany.parking.coto.java.poo {
 }
 
 ' =========================================================
+' NOTES
+' =========================================================
+note right of Vehicle
+  Polymorphism: calculateFee() is final and delegates
+  to getPricingPolicy(), which each subclass overrides.
+  Nobody outside asks "what type of vehicle is this?".
+end note
+
+note bottom of HourlyPricingPolicy
+  The daily maximum rule (10 h threshold,
+  24 h periods) lives ONLY here.
+end note
+
+' =========================================================
 ' RELATIONSHIPS
 ' =========================================================
 
@@ -254,9 +280,12 @@ ParkingTicket "0..*" --> "1" Vehicle : vehicle
 ParkingTicket "0..*" --> "1" ParkingSpace : space
 Payment "0..1" --> "1" ParkingTicket : ticket
 Vehicle ..> PricingPolicy : delegates fee
-Car --> "1" PricingPolicy
-Motorcycle --> "1" PricingPolicy
-CargoVehicle --> "1" PricingPolicy
+Car --> "1" PricingPolicy : PRICING_POLICY
+Motorcycle --> "1" PricingPolicy : PRICING_POLICY
+CargoVehicle --> "1" PricingPolicy : PRICING_POLICY
+Car ..> HourlyPricingPolicy : <<creates>>
+Motorcycle ..> HourlyPricingPolicy : <<creates>>
+CargoVehicle ..> HourlyPricingPolicy : <<creates>>
 ParkingTicket ..> Payment : <<creates>>
 ParkingSpace ..> Vehicle : checks compatibility
 
@@ -276,9 +305,12 @@ ParkingException <|-- NoActiveTicketException
 ParkingException <|-- InvalidTicketStateException
 ParkingSpace ..> SpaceNotAvailableException : <<throws>>
 ParkingSpace ..> IncompatibleSpaceException : <<throws>>
+ParkingSpace ..> ParkingException : <<throws>>
 ParkingTicket ..> InvalidTicketStateException : <<throws>>
 ParkingLot ..> ActiveTicketException : <<throws>>
 ParkingLot ..> NoActiveTicketException : <<throws>>
+ParkingLot ..> SpaceNotAvailableException : <<throws>>
+ParkingLot ..> ParkingException : <<throws>>
 
 ' Execution
 ParkingDemo --> "1" ParkingLot : parkingLot

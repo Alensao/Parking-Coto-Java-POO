@@ -10,6 +10,7 @@ import exception.InvalidTicketStateException;
 import exception.NoActiveTicketException;
 import exception.SpaceNotAvailableException;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 import model.Car;
 import model.CargoVehicle;
@@ -180,6 +181,9 @@ public class ParkingDemo {
         System.out.println("Scenarios passed: " + passedScenarios + " / " + totalScenarios);
         System.out.println("Vehicles inside:  " + parkingLot.getVehiclesInside());
         System.out.printf("Occupancy:        %.1f%%%n", parkingLot.getOccupancyPercentage());
+        Map<SpaceType, Long> totalByType = parkingLot.countSpacesByType();
+        parkingLot.countOccupiedSpacesByType().forEach((type, occupied) ->
+                System.out.println("Occupancy " + type + ": " + occupied + " / " + totalByType.get(type)));
         System.out.println("Total revenue:    CRC " + parkingLot.getTotalRevenue());
         System.out.println("==============================================");
     }
