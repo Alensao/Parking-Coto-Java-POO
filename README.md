@@ -77,5 +77,6 @@ docs/parking-coto.puml                                             diagrama UML 
 
 ## Integrantes
 
-- (nombre 1)
-- (nombre 2)
+- Anddy Prendas
+- Mathew Ramirez
+- Alen Cedenio
