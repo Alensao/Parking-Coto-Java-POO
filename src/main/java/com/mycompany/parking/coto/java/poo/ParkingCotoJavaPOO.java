@@ -1,16 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
 
 package com.mycompany.parking.coto.java.poo;
-
-/**
- *
- * @author alenc
- */
+import demo.ParkingDemo;
 public class ParkingCotoJavaPOO {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        new ParkingDemo().run();
+
+
     }
 }

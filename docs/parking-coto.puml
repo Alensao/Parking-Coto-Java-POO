@@ -1,0 +1,287 @@
+@startuml
+title Parking Coto - Class Diagram
+
+skinparam classAttributeIconSize 0
+set separator none
+skinparam packageStyle rectangle
+skinparam nodesep 60
+skinparam ranksep 70
+
+' =========================================================
+' ENUMERATIONS
+' =========================================================
+package enums {
+    enum SpaceStatus {
+        AVAILABLE
+        OCCUPIED
+        OUT_OF_SERVICE
+    }
+    enum SpaceType {
+        MOTORCYCLE
+        CAR
+        CARGO
+    }
+    enum TicketStatus {
+        ACTIVE
+        CLOSED
+        PAID
+    }
+    enum PaymentType {
+        CASH
+        CARD
+        SINPE_MOVIL
+    }
+    enum VehicleType {
+        MOTORCYCLE
+        CAR
+        CARGO
+    }
+}
+
+' =========================================================
+' PRICING
+' =========================================================
+package pricing {
+    interface PricingPolicy <<interface>> {
+        + calculateFee(stay: Duration): long
+    }
+
+    class HourlyPricingPolicy <<final>> {
+        + {static} DEFAULT_DAILY_CAP_THRESHOLD_HOURS: int = 10
+        - {static} MINUTES_PER_HOUR: long = 60
+        - {static} HOURS_PER_DAY: long = 24
+        - hourlyRate: long
+        - dailyMaximum: long
+        - dailyCapThresholdHours: int
+        + HourlyPricingPolicy(hourlyRate: long, dailyMaximum: long)
+        + HourlyPricingPolicy(hourlyRate: long, dailyMaximum: long, dailyCapThresholdHours: int)
+        + calculateFee(stay: Duration): long
+        + getHourlyRate(): long
+        + getDailyMaximum(): long
+        + getDailyCapThresholdHours(): int
+        - toChargeableHours(stay: Duration): long
+        - feeForPartialDay(hours: long): long
+    }
+}
+
+' =========================================================
+' MODEL
+' =========================================================
+package model {
+    abstract class Vehicle {
+        - licensePlate: String
+        - brand: String
+        - model: String
+        - color: String
+        - type: VehicleType
+        # Vehicle(licensePlate: String, brand: String, model: String, color: String, type: VehicleType)
+        + calculateFee(stay: Duration): long <<final>>
+        + {abstract} getRequiredSpaceType(): SpaceType
+        # {abstract} getPricingPolicy(): PricingPolicy
+        + {static} normalizePlate(licensePlate: String): String
+        + getLicensePlate(): String
+        + getBrand(): String
+        + getModel(): String
+        + getColor(): String
+        + getType(): VehicleType
+        + equals(other: Object): boolean
+        + hashCode(): int
+        + toString(): String
+    }
+
+    class Car {
+        - {static} PRICING_POLICY: PricingPolicy
+        + Car(licensePlate: String, brand: String, model: String, color: String)
+        + getRequiredSpaceType(): SpaceType
+        # getPricingPolicy(): PricingPolicy
+    }
+
+    class Motorcycle {
+        - {static} PRICING_POLICY: PricingPolicy
+        + Motorcycle(licensePlate: String, brand: String, model: String, color: String)
+        + getRequiredSpaceType(): SpaceType
+        # getPricingPolicy(): PricingPolicy
+    }
+
+    class CargoVehicle {
+        - {static} PRICING_POLICY: PricingPolicy
+        + CargoVehicle(licensePlate: String, brand: String, model: String, color: String)
+        + getRequiredSpaceType(): SpaceType
+        # getPricingPolicy(): PricingPolicy
+    }
+
+    class ParkingSpace {
+        - id: String
+        - type: SpaceType
+        - status: SpaceStatus
+        + ParkingSpace(id: String, type: SpaceType)
+        + isAvailable(): boolean
+        + isCompatibleWith(vehicle: Vehicle): boolean
+        + canAccept(vehicle: Vehicle): boolean
+        + occupy(vehicle: Vehicle): void
+        + release(): void
+        + markOutOfService(): void
+        + returnToService(): void
+        + getId(): String
+        + getType(): SpaceType
+        + getStatus(): SpaceStatus
+    }
+
+    class ParkingTicket {
+        - ticketNumber: int
+        - vehicle: Vehicle
+        - space: ParkingSpace
+        - entryTime: LocalDateTime
+        - exitTime: LocalDateTime
+        - status: TicketStatus
+        - finalAmount: long
+        + ParkingTicket(ticketNumber: int, vehicle: Vehicle, space: ParkingSpace, entryTime: LocalDateTime)
+        + isActive(): boolean
+        + belongsTo(licensePlate: String): boolean
+        + getStayDuration(): Duration
+        + close(exitTime: LocalDateTime): void
+        + pay(paymentId: int, type: PaymentType, paymentTime: LocalDateTime): Payment
+        + getExitTime(): Optional<LocalDateTime>
+        + getStatus(): TicketStatus
+        + getFinalAmount(): long
+    }
+
+    class Payment {
+        - id: int
+        - ticket: ParkingTicket
+        - paymentTime: LocalDateTime
+        - amount: long
+        - type: PaymentType
+        ~ Payment(id: int, ticket: ParkingTicket, paymentTime: LocalDateTime, type: PaymentType)
+        + getId(): int
+        + getTicket(): ParkingTicket
+        + getPaymentTime(): LocalDateTime
+        + getAmount(): long
+        + getType(): PaymentType
+    }
+}
+
+' =========================================================
+' SERVICE
+' =========================================================
+package service {
+    class ParkingLot {
+        - name: String
+        - vehicles: Map<String, Vehicle>
+        - spaces: Map<String, ParkingSpace>
+        - tickets: List<ParkingTicket>
+        - payments: List<Payment>
+        - nextTicketNumber: int
+        - nextPaymentId: int
+        + ParkingLot(name: String)
+        + registerVehicle(vehicle: Vehicle): void
+        + registerSpace(id: String, type: SpaceType): ParkingSpace
+        + markSpaceOutOfService(spaceId: String): void
+        + returnSpaceToService(spaceId: String): void
+        + registerEntry(licensePlate: String, entryTime: LocalDateTime): ParkingTicket
+        + registerEntry(licensePlate: String, spaceId: String, entryTime: LocalDateTime): ParkingTicket
+        + registerExit(licensePlate: String, exitTime: LocalDateTime): ParkingTicket
+        + registerPayment(ticketNumber: int, type: PaymentType, paymentTime: LocalDateTime): Payment
+        + getAvailableSpaces(): List<ParkingSpace>
+        + getActiveTickets(): List<ParkingTicket>
+        + getVehiclesInside(): List<Vehicle>
+        + getPayments(): List<Payment>
+        + getTotalRevenue(): long
+        + countSpacesByStatus(status: SpaceStatus): long
+        + getOccupancyPercentage(): double
+        - findVehicle(licensePlate: String): Vehicle
+        - findSpace(spaceId: String): ParkingSpace
+        - findTicket(ticketNumber: int): ParkingTicket
+        - findActiveTicket(licensePlate: String): Optional<ParkingTicket>
+        - ensureNoActiveTicket(vehicle: Vehicle): void
+        - findFirstAvailableSpaceFor(vehicle: Vehicle): ParkingSpace
+        - openTicket(vehicle: Vehicle, space: ParkingSpace, entryTime: LocalDateTime): ParkingTicket
+    }
+}
+
+' =========================================================
+' EXCEPTIONS
+' =========================================================
+package exception {
+    class RuntimeException <<java.lang>>
+    class ParkingException
+    class SpaceNotAvailableException
+    class IncompatibleSpaceException
+    class ActiveTicketException
+    class NoActiveTicketException
+    class InvalidTicketStateException
+}
+
+' =========================================================
+' EXECUTION
+' =========================================================
+package demo {
+    class ParkingDemo {
+        - parkingLot: ParkingLot
+        - totalScenarios: int
+        - passedScenarios: int
+        + ParkingDemo()
+        + run(): void
+    }
+}
+
+package com.mycompany.parking.coto.java.poo {
+    class ParkingCotoJavaPOO {
+        + {static} main(args: String[]): void
+    }
+}
+
+' =========================================================
+' RELATIONSHIPS
+' =========================================================
+
+' Inheritance and realization
+Vehicle <|-- Car
+Vehicle <|-- Motorcycle
+Vehicle <|-- CargoVehicle
+PricingPolicy <|.. HourlyPricingPolicy
+
+' Composition (ParkingLot creates and manages them)
+ParkingLot "1" *-- "0..*" ParkingSpace : spaces
+ParkingLot "1" *-- "0..*" ParkingTicket : tickets
+ParkingLot "1" *-- "0..*" Payment : payments
+
+' Aggregation (vehicles exist on their own)
+ParkingLot "1" o-- "0..*" Vehicle : vehicles
+
+' Associations
+ParkingTicket "0..*" --> "1" Vehicle : vehicle
+ParkingTicket "0..*" --> "1" ParkingSpace : space
+Payment "0..1" --> "1" ParkingTicket : ticket
+Vehicle ..> PricingPolicy : delegates fee
+Car --> "1" PricingPolicy
+Motorcycle --> "1" PricingPolicy
+CargoVehicle --> "1" PricingPolicy
+ParkingTicket ..> Payment : <<creates>>
+ParkingSpace ..> Vehicle : checks compatibility
+
+' Enumerations
+Vehicle --> "1" VehicleType
+ParkingSpace --> "1" SpaceType
+ParkingSpace --> "1" SpaceStatus
+ParkingTicket --> "1" TicketStatus
+Payment --> "1" PaymentType
+
+' Exceptions
+RuntimeException <|-- ParkingException
+ParkingException <|-- SpaceNotAvailableException
+ParkingException <|-- IncompatibleSpaceException
+ParkingException <|-- ActiveTicketException
+ParkingException <|-- NoActiveTicketException
+ParkingException <|-- InvalidTicketStateException
+ParkingSpace ..> SpaceNotAvailableException : <<throws>>
+ParkingSpace ..> IncompatibleSpaceException : <<throws>>
+ParkingTicket ..> InvalidTicketStateException : <<throws>>
+ParkingLot ..> ActiveTicketException : <<throws>>
+ParkingLot ..> NoActiveTicketException : <<throws>>
+
+' Execution
+ParkingDemo --> "1" ParkingLot : parkingLot
+ParkingCotoJavaPOO ..> ParkingDemo : <<creates>>
+
+@enduml
