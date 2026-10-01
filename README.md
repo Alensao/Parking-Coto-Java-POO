@@ -79,4 +79,4 @@ docs/parking-coto.puml                                             diagrama UML 
 
 - Anddy Prendas
 - Mathew Ramirez
-- Alensao
+- Alen Cedeño

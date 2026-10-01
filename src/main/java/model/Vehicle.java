@@ -37,6 +37,12 @@ public abstract class Vehicle {
         return getPricingPolicy().calculateFee(stay);
     }
 
+        /**
+     * Calculates how many hours this vehicle is charged for a stay.
+     */
+    public final long calculateChargeableHours(Duration stay) {
+        return getPricingPolicy().calculateChargeableHours(stay);
+    }
     /**
      * Type of space this vehicle is allowed to use.
      */

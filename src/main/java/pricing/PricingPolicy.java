@@ -16,4 +16,12 @@ public interface PricingPolicy {
      * @return amount to charge, in colones
      */
     long calculateFee(Duration stay);
+
+    /**
+     * Calculates how many hours are charged for a stay.
+     *
+     * @param stay length of the stay (must not be negative)
+     * @return number of charged hours
+     */
+    long calculateChargeableHours(Duration stay);
 }

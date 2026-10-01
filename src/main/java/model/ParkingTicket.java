@@ -105,6 +105,13 @@ public class ParkingTicket {
         return ticketNumber;
     }
 
+    /**
+     * Hours charged for this stay. Only available once the ticket has an exit time.
+     */
+    public long getChargedHours() {
+        return vehicle.calculateChargeableHours(getStayDuration());
+    }
+    
     public Vehicle getVehicle() {
         return vehicle;
     }

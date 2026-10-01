@@ -45,10 +45,25 @@ public final class HourlyPricingPolicy implements PricingPolicy {
 
     @Override
     public long calculateFee(Duration stay) {
-        long chargeableHours = toChargeableHours(stay);
+        long chargeableHours = calculateChargeableHours(stay);
         long fullDays = chargeableHours / HOURS_PER_DAY;
         long remainingHours = chargeableHours % HOURS_PER_DAY;
         return fullDays * dailyMaximum + feeForPartialDay(remainingHours);
+    }
+
+    /**
+     * Rounds the stay up to whole hours, working with minute precision.
+     * Examples: 1 min -> 1 h, 60 min -> 1 h, 61 min -> 2 h.
+     */
+    @Override
+    public long calculateChargeableHours(Duration stay) {
+        Objects.requireNonNull(stay, "Stay must not be null.");
+        if (stay.isNegative()) {
+            throw new IllegalArgumentException("Stay must not be negative.");
+        }
+        long minutes = stay.toMinutes();
+        long hours = (minutes + MINUTES_PER_HOUR - 1) / MINUTES_PER_HOUR; // integer ceiling
+        return Math.max(1, hours);
     }
 
     public long getHourlyRate() {
@@ -61,20 +76,6 @@ public final class HourlyPricingPolicy implements PricingPolicy {
 
     public int getDailyCapThresholdHours() {
         return dailyCapThresholdHours;
-    }
-
-    /**
-     * Rounds the stay up to whole hours, working with minute precision.
-     * Examples: 1 min -> 1 h, 60 min -> 1 h, 61 min -> 2 h.
-     */
-    private long toChargeableHours(Duration stay) {
-        Objects.requireNonNull(stay, "Stay must not be null.");
-        if (stay.isNegative()) {
-            throw new IllegalArgumentException("Stay must not be negative.");
-        }
-        long minutes = stay.toMinutes();
-        long hours = (minutes + MINUTES_PER_HOUR - 1) / MINUTES_PER_HOUR; // integer ceiling
-        return Math.max(1, hours);
     }
 
     private long feeForPartialDay(long hours) {

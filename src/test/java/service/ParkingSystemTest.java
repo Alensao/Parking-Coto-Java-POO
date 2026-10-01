@@ -166,6 +166,17 @@ class ParkingSystemTest {
     }
 
     @Test
+    @DisplayName("Charged hours are calculated for the stay")
+    void chargedHours() {
+        lot.registerEntry("CAR-1", START);
+        ParkingTicket ticket = lot.registerExit("CAR-1", START.plusMinutes(61));
+        assertEquals(2L, ticket.getChargedHours());
+        assertEquals(1800L, ticket.getFinalAmount());
+        PricingPolicy policy = new HourlyPricingPolicy(900, 7000);
+        assertEquals(3L, policy.calculateChargeableHours(Duration.ofMinutes(121)));
+    }
+
+    @Test
     @DisplayName("11. More than 10 hours applies the daily maximum for each vehicle type")
     void dailyMaximum() {
         lot.registerEntry("CAR-1", START);
