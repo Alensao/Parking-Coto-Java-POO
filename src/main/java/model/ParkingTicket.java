@@ -142,14 +142,15 @@ public class ParkingTicket {
     /**
      * Two tickets are the same ticket when they have the same number.
      */
-    @Override
+       @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof ParkingTicket ticket)) {
+        if (!(other instanceof ParkingTicket)) {
             return false;
         }
+        ParkingTicket ticket = (ParkingTicket) other;
         return ticketNumber == ticket.ticketNumber;
     }
 

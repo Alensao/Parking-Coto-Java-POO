@@ -9,7 +9,7 @@ import pricing.PricingPolicy;
 
 /**
  * Common abstraction for every vehicle that can use the parking lot.
- * Each subclase only states what makes it different: the space it needs
+ * Each subclass only states what makes it different: the space it needs
  * and the pricing policy it uses. The fee calculation itself is final and
  * delegates to that policy, so nobody outside needs to ask what kind of
  * vehicle this is.
@@ -37,12 +37,13 @@ public abstract class Vehicle {
         return getPricingPolicy().calculateFee(stay);
     }
 
-        /**
+    /**
      * Calculates how many hours this vehicle is charged for a stay.
      */
     public final long calculateChargeableHours(Duration stay) {
         return getPricingPolicy().calculateChargeableHours(stay);
     }
+
     /**
      * Type of space this vehicle is allowed to use.
      */
@@ -97,9 +98,10 @@ public abstract class Vehicle {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof Vehicle vehicle)) {
+        if (!(other instanceof Vehicle)) {
             return false;
         }
+        Vehicle vehicle = (Vehicle) other;
         return licensePlate.equals(vehicle.licensePlate);
     }
 

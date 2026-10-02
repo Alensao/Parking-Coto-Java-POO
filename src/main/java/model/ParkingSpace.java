@@ -115,14 +115,15 @@ public class ParkingSpace {
     /**
      * Two spaces are the same space when they have the same id.
      */
-    @Override
+        @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof ParkingSpace space)) {
+        if (!(other instanceof ParkingSpace)) {
             return false;
         }
+        ParkingSpace space = (ParkingSpace) other;
         return id.equals(space.id);
     }
 
